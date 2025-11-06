@@ -1,0 +1,19 @@
+# Telegram Bot
+aiogram==3.13.1
+
+# OpenAI API
+openai>=1.54.3
+
+# Database
+aiosqlite==0.20.0
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.3
+pytest-asyncio==0.24.0
+
+# Logging
+loguru==0.7.2
+

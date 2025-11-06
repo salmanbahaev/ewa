@@ -1,0 +1,22 @@
+[Unit]
+Description=EWA Product Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/path/to/ewa
+ExecStart=/usr/bin/python3 /path/to/ewa/main.py
+Restart=always
+RestartSec=10
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
