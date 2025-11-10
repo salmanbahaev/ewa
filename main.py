@@ -45,6 +45,19 @@ async def main():
     assistant = AIAssistant()
     logger.info("AI Assistant initialized")
     
+    # Initialize semantic search embeddings
+    from ai.embeddings import initialize_embeddings_search
+    from ai.product_search import load_json_file
+    
+    logger.info("Loading product catalog for embeddings...")
+    catalog = load_json_file(config.CATALOG_PATH)
+    if catalog:
+        logger.info(f"Initializing semantic search for {len(catalog)} products...")
+        await initialize_embeddings_search(catalog)
+        logger.info("✅ Semantic search initialized successfully!")
+    else:
+        logger.error("Failed to load catalog! Search will not work.")
+    
     # Initialize bot
     # Если нужен прокси (для России), раскомментируй следующие строки:
     # from aiogram.client.session.aiohttp import AiohttpSession

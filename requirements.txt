@@ -20,3 +20,6 @@ loguru==0.7.2
 # HTTP requests (for downloading product images)
 requests==2.32.3
 
+# Vector operations for semantic search
+numpy>=2.3.0
+

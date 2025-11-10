@@ -140,6 +140,9 @@ celerybeat.pid
 .env*.local
 .envrc
 .venv
+
+# Embeddings cache
+data/embeddings_cache.json
 env/
 venv/
 ENV/
