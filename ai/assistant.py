@@ -32,7 +32,7 @@ class AIAssistant:
         user_message: str,
         chat_history: Optional[List[Dict[str, str]]] = None,
         assistant_gender: Optional[str] = None
-    ) -> str:
+    ) -> tuple[str, List[Dict], str]:
         """
         Get AI response for user message.
         
@@ -42,8 +42,12 @@ class AIAssistant:
             assistant_gender: 'male', 'female', or None
             
         Returns:
-            AI assistant response text
+            Tuple of (response_text, found_products, search_query)
         """
+        # Variables to store found products
+        found_products = []
+        search_query = ""
+        
         try:
             # Select system prompt based on gender
             if assistant_gender == "male":
@@ -80,6 +84,9 @@ class AIAssistant:
                 # Add assistant response with tool calls to messages
                 messages.append(response_message)
                 
+                # Context to store products from function calls
+                context = {"found_products": [], "search_query": ""}
+                
                 # Process each function call
                 for tool_call in response_message.tool_calls:
                     function_name = tool_call.function.name
@@ -90,7 +97,8 @@ class AIAssistant:
                     # Execute function
                     function_response = await self._execute_function(
                         function_name,
-                        function_args
+                        function_args,
+                        context
                     )
                     
                     # Add function response to messages
@@ -100,6 +108,10 @@ class AIAssistant:
                         "name": function_name,
                         "content": function_response
                     })
+                
+                # Store found products and query
+                found_products = context["found_products"]
+                search_query = context["search_query"]
                 
                 # Second API call with function results
                 second_response = await self.client.chat.completions.create(
@@ -113,19 +125,20 @@ class AIAssistant:
                 final_answer = response_message.content
             
             logger.info(f"AI response generated: {len(final_answer)} characters")
-            return final_answer
+            return final_answer, found_products, search_query
             
         except Exception as e:
             logger.error(f"Error in AI assistant: {e}")
-            return "Извините, произошла ошибка при обработке вашего запроса. Попробуйте еще раз."
+            return "Извините, произошла ошибка при обработке вашего запроса. Попробуйте еще раз.", [], ""
     
-    async def _execute_function(self, function_name: str, arguments: Dict) -> str:
+    async def _execute_function(self, function_name: str, arguments: Dict, context: Dict) -> str:
         """
         Execute function call.
         
         Args:
             function_name: Name of function to execute
             arguments: Function arguments
+            context: Dictionary to store products and query for this request
             
         Returns:
             Function result as JSON string
@@ -133,16 +146,23 @@ class AIAssistant:
         try:
             if function_name == "search_products":
                 query = arguments.get("query", "")
-                max_results = arguments.get("max_results", 5)
+                # Игнорируем max_results от GPT, всегда ищем больше для пагинации
+                max_results = 20
                 
                 products = search_products(query, max_results)
                 
+                # Store ALL found products and query in context (for this request only)
+                context["found_products"] = products if products else []
+                context["search_query"] = query
+                
                 if products:
-                    # Format products for GPT
-                    formatted = format_products_list(products)
+                    # Format only TOP-3 products for GPT (pagination handled by buttons)
+                    top_3 = products[:3]
+                    formatted = format_products_list(top_3)
                     result = {
                         "status": "success",
-                        "count": len(products),
+                        "count": len(products),  # Total count
+                        "shown": len(top_3),     # Shown to user
                         "products": formatted
                     }
                 else:

@@ -7,6 +7,7 @@ from loguru import logger
 from data.database import Database
 from ai.assistant import AIAssistant
 from bot.keyboards.main import get_main_keyboard
+from bot.keyboards.product import get_products_list_keyboard
 import config
 
 router = Router()
@@ -57,8 +58,8 @@ async def handle_text_message(message: Message, db: Database, assistant: AIAssis
             limit=config.MAX_HISTORY_MESSAGES
         )
         
-        # Get AI response
-        ai_response = await assistant.get_response(
+        # Get AI response with found products
+        ai_response, found_products, search_query = await assistant.get_response(
             user_message=user_text,
             chat_history=history[:-1],  # Exclude current message
             assistant_gender=assistant_gender
@@ -71,8 +72,23 @@ async def handle_text_message(message: Message, db: Database, assistant: AIAssis
             content=ai_response
         )
         
+        # Check if products were found - add keyboard with numbered buttons + pagination
+        keyboard = None
+        if found_products:
+            # Show only first 3 products
+            top_3 = found_products[:3]
+            total_found = len(found_products)
+            
+            keyboard = get_products_list_keyboard(
+                products=top_3,
+                total_found=total_found,
+                current_offset=0,
+                query=search_query
+            )
+            logger.info(f"Adding keyboard: showing 3 of {total_found} products")
+        
         # Send response
-        await message.answer(ai_response)
+        await message.answer(ai_response, reply_markup=keyboard)
         
         logger.info(f"Response sent to {user.id}: {len(ai_response)} characters")
     

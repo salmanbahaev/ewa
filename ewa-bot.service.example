@@ -1,14 +1,21 @@
 [Unit]
 Description=EWA Product Telegram Bot
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=YOUR_USERNAME
 WorkingDirectory=/path/to/ewa
-ExecStart=/usr/bin/python3 /path/to/ewa/main.py
+ExecStart=/path/to/ewa/venv/bin/python /path/to/ewa/main.py
+
+# Автоперезапуск
 Restart=always
 RestartSec=10
+
+# Ограничения на перезапуски (защита от бесконечного цикла)
+StartLimitInterval=300
+StartLimitBurst=5
 
 # Environment
 Environment="PYTHONUNBUFFERED=1"
@@ -16,6 +23,12 @@ Environment="PYTHONUNBUFFERED=1"
 # Logging
 StandardOutput=journal
 StandardError=journal
+SyslogIdentifier=ewa-bot
+
+# Безопасность и ресурсы
+Nice=0
+CPUQuota=50%
+MemoryLimit=512M
 
 [Install]
 WantedBy=multi-user.target

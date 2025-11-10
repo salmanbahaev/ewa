@@ -10,7 +10,7 @@ from aiogram.enums import ParseMode
 import config
 from data.database import Database
 from ai.assistant import AIAssistant
-from bot.handlers import start, messages, callbacks, menu, clear, menu_buttons
+from bot.handlers import start, messages, callbacks, menu, clear, menu_buttons, product_card
 from bot.middlewares.logging import LoggingMiddleware
 
 
@@ -70,6 +70,7 @@ async def main():
     dp.include_router(clear.router)
     dp.include_router(menu.router)
     dp.include_router(menu_buttons.router)  # Reply keyboard buttons
+    dp.include_router(product_card.router)  # Product cards with photos
     dp.include_router(callbacks.router)
     dp.include_router(messages.router)  # Messages должен быть последним
     logger.info("Handlers registered")

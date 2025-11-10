@@ -1,0 +1,55 @@
+# Исключаемые файлы и папки при деплое
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database (создастся на VPS)
+data/data/
+*.db
+
+# Environment
+.env
+.env.local
+
+# Документация (опционально, можно оставить)
+# README.md
+# DEPLOY*.md
+# TZ.md
+
+# Test files
+tests/
+pytest.ini
+test_*.py
+
+# Temp files
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Other
+node_modules/
+
+
+

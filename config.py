@@ -41,7 +41,7 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 DATABASE_PATH = DATA_DIR / os.getenv("DATABASE_PATH", "bot_database.db")
 
 # Data files
-CATALOG_PATH = DATA_DIR / "catalog.json"
+CATALOG_PATH = DATA_DIR / "mainCatalog.json"  # Полный каталог с сайта
 COMPANY_PATH = DATA_DIR / "company.json"
 BUSINESS_PATH = DATA_DIR / "business.json"
 EVENTS_PATH = DATA_DIR / "events.json"

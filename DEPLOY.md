@@ -8,72 +8,41 @@
 
 ---
 
-## Шаг 1: Подключение к VPS
+## 🎯 Быстрый деплой (рекомендуется)
+
+### Шаг 1: Подключение к VPS и загрузка проекта
 
 ```bash
 ssh your_user@your_vps_ip
 ```
 
----
-
-## Шаг 2: Установка Python и зависимостей
-
-```bash
-# Обновление системы
-sudo apt update
-sudo apt upgrade -y
-
-# Установка Python 3.10+
-sudo apt install python3 python3-pip python3-venv git -y
-
-# Проверка версии
-python3 --version
-```
-
----
-
-## Шаг 3: Загрузка проекта
-
-**Вариант 1: Через Git**
+**Вариант А: Через Git (если репозиторий настроен)**
 
 ```bash
 git clone <your_repository_url>
 cd ewa
 ```
 
-**Вариант 2: Через SCP (локально)**
+**Вариант Б: Через SCP (с локального компа)**
 
 ```bash
-# На вашем компе
-scp -r D:\CURSOR_PROJECTS\ewa your_user@your_vps_ip:~/
-```
+# НА ЛОКАЛЬНОМ КОМПЕ (в PowerShell/CMD):
+scp -r D:\AI_PROJECTS\ewa your_user@your_vps_ip:~/
 
----
-
-## Шаг 4: Настройка проекта
-
-```bash
+# Затем НА VPS:
+ssh your_user@your_vps_ip
 cd ~/ewa
-
-# Создание виртуального окружения
-python3 -m venv venv
-source venv/bin/activate
-
-# Установка зависимостей
-pip install -r requirements.txt
 ```
 
 ---
 
-## Шаг 5: Конфигурация
-
-Создайте `.env.local`:
+### Шаг 2: Создайте .env.local с токенами
 
 ```bash
 nano .env.local
 ```
 
-Вставьте:
+Вставьте ваши токены:
 
 ```env
 TELEGRAM_BOT_TOKEN=ваш_токен_бота
@@ -88,37 +57,93 @@ LOG_DIR=logs
 
 ---
 
-## Шаг 6: Тестовый запуск
+### Шаг 3: Запустите скрипт автоматического деплоя
 
 ```bash
-python3 main.py
+chmod +x deploy_vps.sh
+bash deploy_vps.sh
 ```
 
-Проверьте что бот работает в Telegram.  
-Остановите: `Ctrl+C`
+**Скрипт автоматически:**
+
+- ✅ Установит Python (если нужно)
+- ✅ Создаст виртуальное окружение
+- ✅ Установит зависимости
+- ✅ Настроит systemd service
+- ✅ Включит автозапуск
+- ✅ Запустит бота
 
 ---
 
-## Шаг 7: Создание systemd service
+### ✅ Готово!
+
+Бот работает 24/7 с:
+
+- 🔄 Автоматическим перезапуском при падении (каждые 10 сек)
+- 🚀 Автозапуском при перезагрузке сервера
+- 🛡️ Защитой от бесконечного цикла перезапусков
+- 💾 Ограничением памяти (512MB) и CPU (50%)
+
+---
+
+## 📋 Ручной деплой (опционально)
+
+<details>
+<summary>Развернуть инструкцию ручного деплоя</summary>
+
+### Шаг 1: Установка Python и зависимостей
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+sudo apt install python3 python3-pip python3-venv git -y
+python3 --version
+```
+
+### Шаг 2: Настройка проекта
+
+```bash
+cd ~/ewa
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Шаг 3: Тестовый запуск
+
+```bash
+python3 main.py
+# Проверьте бота в Telegram
+# Ctrl+C для остановки
+```
+
+### Шаг 4: Создание systemd service
 
 ```bash
 sudo nano /etc/systemd/system/ewa-bot.service
 ```
 
-Вставьте (замените `YOUR_USERNAME` и пути):
+Вставьте (замените `YOUR_USERNAME` на ваш username):
 
 ```ini
 [Unit]
 Description=EWA Product Telegram Bot
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=YOUR_USERNAME
 WorkingDirectory=/home/YOUR_USERNAME/ewa
 ExecStart=/home/YOUR_USERNAME/ewa/venv/bin/python /home/YOUR_USERNAME/ewa/main.py
+
+# Автоперезапуск
 Restart=always
 RestartSec=10
+
+# Ограничения на перезапуски
+StartLimitInterval=300
+StartLimitBurst=5
 
 # Environment
 Environment="PYTHONUNBUFFERED=1"
@@ -126,30 +151,27 @@ Environment="PYTHONUNBUFFERED=1"
 # Logging
 StandardOutput=journal
 StandardError=journal
+SyslogIdentifier=ewa-bot
+
+# Безопасность и ресурсы
+Nice=0
+CPUQuota=50%
+MemoryLimit=512M
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Сохраните: `Ctrl+O`, `Enter`, `Ctrl+X`
-
----
-
-## Шаг 8: Запуск сервиса
+### Шаг 5: Запуск
 
 ```bash
-# Перезагрузка конфигурации systemd
 sudo systemctl daemon-reload
-
-# Включение автозапуска
 sudo systemctl enable ewa-bot
-
-# Запуск бота
 sudo systemctl start ewa-bot
-
-# Проверка статуса
 sudo systemctl status ewa-bot
 ```
+
+</details>
 
 ---
 
